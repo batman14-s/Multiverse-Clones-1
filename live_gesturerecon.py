@@ -7,8 +7,8 @@ def getCorrectClass(tmpClass,classMap):
          if value == tmpClass:
              return key
 
-model = load_model("WrongDataModel.h5")
-classMap = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, 'EQUALS':6, 'NONE':7, 'PLUS':8}
+model = load_model("FinalModel.h5")
+classMap = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, 'EQUALS':6, 'NONE':7, 'SUM':8}
 cap = cv2.VideoCapture(0)
 prev_move = None
 while True:
@@ -20,7 +20,7 @@ while True:
     # extract the region of image within the user rectangle
     roi = frame[100:500, 100:500]
     # img = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
-    img2 = cv2.Canny(roi, 50, 80)
+    img2 = cv2.Canny(roi, 50, 150)
     imageSize = 100
     img = cv2.resize(img2, (imageSize, imageSize))
     # predict the move made
