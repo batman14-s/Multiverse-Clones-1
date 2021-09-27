@@ -1,3 +1,3 @@
 # Multiverse-Clones
 
-https://www.kaggle.com/paultimothymooney/interpret-sign-language-with-deep-learning
+This project aims to provide classic feature for calculations using hand gestures.
