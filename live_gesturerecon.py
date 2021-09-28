@@ -1,8 +1,8 @@
 from keras.models import load_model
 import cv2
 import numpy as np
-import time
 from datetime import datetime
+from scipy import stats
 
 def getTime():
     time = datetime.now().hour*3600+datetime.now().minute*60 + datetime.now().second + datetime.now().microsecond/1000000
@@ -39,19 +39,24 @@ def predict(frame):
 model = load_model("FinalModel.h5")
 
 classMap = {'0':0, '1':1, '2':2, '3':3, '4':4, '5':5, 'EQUALS':6, 'NONE':7, 'SUM':8}
+imageSize = 100
 coord = [[50,300],[100,400]]
 white = (255, 255, 255)
-rectangleThickness = 2
-fontThickness = 2
-lowIntensity = 50
-highIntensity = 150
-imageSize = 100
-waitTime = 3
-displayResultTime = 2
+rectangleThickness = fontThickness = 2
 timeRemainingPosition = (10,80)
 outcomePosition = (30,80)
 font=cv2.FONT_HERSHEY_SIMPLEX
 value = 'NONE'
+
+orders = []
+orderMenu = {'1':'karela','2':'khichdi','3':'tinde','4':'tori','5':'ghiya'}
+
+lowIntensity = 50
+highIntensity = 150
+
+waitTime = 2
+resultCalculationTime = 2
+displayResultTime = 2
 
 cap = cv2.VideoCapture(0)
 while True:
@@ -61,24 +66,54 @@ while True:
     ybottom = coord[1][1]
     ret, frame = cap.read()
     if ret:
+        # waiting for selection to begin
         ptime = getTime()
         while(getTime()-ptime<waitTime):
-            ret, frame = cap.read()
-            if ret:
-                timeRemaining = str(round(waitTime - getTime() + ptime,1))
-                
-                cv2.rectangle(frame, (xleft, ytop), (xright, ybottom), white, rectangleThickness)
-                cv2.putText(frame, " Capturing in: " + timeRemaining ,timeRemainingPosition, font, 1.2, white, fontThickness, cv2.LINE_AA)
-                cv2.imshow('frame', frame)
-                keyCheck()
+                ret, frame = cap.read()
+                if ret:
+                    timeRemaining = round(waitTime - getTime() + ptime,1)
+                    if(timeRemaining<=0):
+                        timeRemaining = 0
+                    cv2.rectangle(frame, (xleft, ytop), (xright, ybottom), white, rectangleThickness)
+                    cv2.putText(frame, " Capturing in: " + str(timeRemaining) ,timeRemainingPosition, font, 1.2, white, fontThickness, cv2.LINE_AA)
+                    cv2.imshow('frame', frame)
+                    keyCheck()
+        
+        # getting selection
+        ptime = getTime()
+        order = []
+        while(getTime()-ptime<resultCalculationTime):
+                ret, frame = cap.read()
+                if ret:
+                    # predict the move made
+                    cannyImage , value = predict(frame)
+                    order.append(value)
+                    cv2.rectangle(frame, (xleft, ytop), (xright, ybottom), white, rectangleThickness)
+                    cv2.putText(frame, "Finding Outcome",outcomePosition, font, 1.2, white, fontThickness, cv2.LINE_AA)
+                    cv2.imshow('frame', frame)
+                    keyCheck()
+        order = stats.mode(np.array(order))[0][0]
+        
+        # displaying selectiong
         ptime = getTime()
         while(getTime()-ptime<displayResultTime):
-            ret, frame = cap.read()
-            if ret:
-                # predict the move made
-                cannyImage , value = predict(frame)
-                cv2.rectangle(frame, (xleft, ytop), (xright, ybottom), white, rectangleThickness)
-                cv2.putText(frame, " Outcome: " + str(value),outcomePosition, font, 1.2, white, fontThickness, cv2.LINE_AA)
-                cv2.imshow('frame', frame)
-                keyCheck()
+                ret, frame = cap.read()
+                if ret:
+                    # predict the move made
+                    cv2.rectangle(frame, (xleft, ytop), (xright, ybottom), white, rectangleThickness)
+                    cv2.putText(frame, " Outcome: " + str(order),outcomePosition, font, 1.2, white, fontThickness, cv2.LINE_AA)
+                    cv2.imshow('frame', frame)
+                    keyCheck()
+
+    if(order == 'SUM'):
+        print("Orders are:",orders)
+        cap.release()
+        cv2.destroyAllWindows()
+        exit()
+    elif order == '0':
+        orders = orders[:len(orders)-1]
+    else:
+        orders.append(orderMenu[order])
+    
+    print(orders)
     keyCheck()
