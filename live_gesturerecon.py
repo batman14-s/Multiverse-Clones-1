@@ -112,7 +112,7 @@ while True:
         exit()
     elif order == '0':
         orders = orders[:len(orders)-1]
-    else:
+    elif order != 'NONE':
         orders.append(orderMenu[order])
     
     print(orders)
