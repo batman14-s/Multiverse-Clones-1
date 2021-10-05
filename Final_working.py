@@ -131,7 +131,9 @@ def shakes(item):
         return "Vanilla Shake"
 
 def getCannyImage(img, lowI, highI):
-    return cv2.Canny(img, lowI, highI)
+    cni = cv2.Canny(img, lowI, highI)
+    cv2.imshow('Cannyimage',cni)
+    return cni
 
 
 def keyCheck():
